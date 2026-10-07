@@ -1,0 +1,32 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>In Time — theme texture generator</title>
+<!--
+  Renders one texture per ?asset=name (and &scheme=light for the light theme) for the browser themes.
+  tools/render-assets.sh screenshots each at its exact size:
+    frame    512 x 80   tab strip, tiles horizontally
+    toolbar  256 x 120  toolbar / bookmarks bar / active tab, tiles horizontally
+    tab      256 x 64   inactive tabs, tiles horizontally
+  Every texture is a vertical gradient plus faint horizontal scan lines, so it repeats seamlessly sideways.
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #020705; }
+  #tex { width: 100vw; height: 100vh; }
+
+  .scan { --scan: repeating-linear-gradient(180deg, rgba(57, 255, 148, 0.045) 0 1px, transparent 1px 4px); }
+  .frame { background: var(--scan), linear-gradient(180deg, #0a2a1f 0%, #05160f 52%, #020a07 100%); }
+  .toolbar { background: var(--scan), linear-gradient(180deg, #0b281d 0%, #081d15 100%); }
+  .tab { background: var(--scan), linear-gradient(180deg, #06180f 0%, #030e09 100%); }
+
+  .light.scan { --scan: repeating-linear-gradient(180deg, rgba(0, 120, 70, 0.05) 0 1px, transparent 1px 4px); }
+  .light.frame { background: var(--scan), linear-gradient(180deg, #e8f2ed 0%, #d6e6de 100%); }
+  .light.toolbar { background: var(--scan), linear-gradient(180deg, #f7fbf9 0%, #eef5f1 100%); }
+  .light.tab { background: var(--scan), linear-gradient(180deg, #dce9e2 0%, #d0e1d8 100%); }
+</style>
+<div id="tex" class="scan"></div>
+<script>
+  const query = new URLSearchParams(location.search);
+  const tex = document.getElementById('tex');
+  tex.classList.add(query.get('asset') || 'frame');
+  if (query.get('scheme') === 'light') tex.classList.add('light');
+</script>

@@ -1,0 +1,5 @@
+.idea
+dist
+# macOS, and Chrome (it drops this cache into a theme folder when you load the theme from here)
+.DS_Store
+Cached Theme.pak

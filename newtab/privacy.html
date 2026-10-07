@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>In Time — Privacy policy</title>
+  <!--
+    Self-contained on purpose: no scripts, no external requests. It ships inside the extension (linked from Settings) and
+    tools/pack.mjs copies it to dist/privacy-policy.html, which is the file to host at the public URL the Web Store asks for.
+  -->
+  <style>
+    :root {
+      --bg: #020705;
+      --fg: #cfeedd;
+      --soft: #8fb5a0;
+      --accent: #39ff94;
+      --line: rgba(57, 255, 148, 0.25);
+      --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif;
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg: #eef5f1; --fg: #12382a; --soft: #476b5a; --accent: #007a48; --line: rgba(0, 122, 72, 0.28); }
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--bg); }
+    body { margin: 0; padding: 56px 24px 88px; font: 16px / 1.65 var(--sans); color: var(--fg); -webkit-font-smoothing: antialiased; }
+    main { max-width: 680px; margin: 0 auto; }
+    h1 { margin: 0 0 10px; font: 600 13px / 1.5 var(--mono); letter-spacing: 0.5em; text-transform: uppercase; color: var(--accent); }
+    h2 { margin: 36px 0 8px; padding-top: 24px; border-top: 1px solid var(--line); font: 600 12px / 1.5 var(--mono); letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); }
+    p { margin: 0 0 12px; }
+    ul { margin: 0 0 12px; padding-left: 1.2em; }
+    li { margin: 6px 0; }
+    .updated { margin-bottom: 32px; font: 12px / 1.5 var(--mono); letter-spacing: 0.12em; color: var(--soft); }
+    .lead { font-size: 18px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>In Time — Privacy policy</h1>
+    <p class="updated">Last updated 7 October 2026</p>
+
+    <p class="lead">This policy covers the <strong>In Time — Birthday Countdown New Tab</strong> browser extension and the
+    <strong>In Time — Dark</strong> and <strong>In Time — Light</strong> themes. The short version: everything stays on your
+    device, and nothing is sent anywhere.</p>
+
+    <h2>What is stored</h2>
+    <p>Two small settings, kept in your browser's local storage on your own device:</p>
+    <ul>
+      <li>the date of birth you enter, which the countdown needs to work;</li>
+      <li>your light / dark / automatic choice, if you change it from Automatic.</li>
+    </ul>
+    <p>They are not synced between your devices.</p>
+
+    <h2>What the extension does not do</h2>
+    <ul>
+      <li>It never sends your date of birth, or anything else, anywhere. The extension makes no network requests.</li>
+      <li>It has no analytics, tracking, advertising or accounts.</li>
+      <li>It asks for no browser permissions, and cannot see your browsing history, your tabs or the pages you visit.</li>
+      <li>It does not share or sell anything, because no data ever leaves your device.</li>
+    </ul>
+
+    <h2>Your control</h2>
+    <p>Open <strong>Settings</strong> (bottom right of the new-tab page) to change the date. Removing the extension deletes
+    everything it stored.</p>
+
+    <h2>The themes</h2>
+    <p>The themes contain only colours and images. They run no code and collect nothing.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes, the new version replaces this page and the date above changes with it.</p>
+
+    <h2>Contact</h2>
+    <p>Questions: use the Support link on the extension's Chrome Web Store page.</p>
+  </main>
+</body>
+</html>

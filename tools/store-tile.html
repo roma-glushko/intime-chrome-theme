@@ -1,0 +1,72 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>In Time — store promo tile</title>
+<!--
+  The Web Store's small promo tile (440 x 280), rendered by tools/render-store.sh.   ?scheme=dark | light | split
+  The backdrop is the new-tab page's own frozen backdrop; the digits are the clock's glyphs, drawn static
+  (days : hours : minutes : seconds, larger than the full clock so they survive being shrunk).
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #020705; }
+  .layer { position: absolute; inset: 0; }
+  .layer iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .layer svg { position: absolute; left: 7%; top: 50%; width: 86%; transform: translateY(-64%); overflow: visible; }
+  .layer path { fill: none; stroke: var(--c); stroke-width: 4.8; stroke-linecap: round; stroke-linejoin: round; }
+  .layer rect { fill: var(--c); }
+
+  .dark svg {
+    --c: #39ff94;
+    filter: drop-shadow(0 0 1.5px rgba(225, 255, 238, 0.9)) drop-shadow(0 0 9px rgba(57, 255, 148, 0.8)) drop-shadow(0 0 26px rgba(57, 255, 148, 0.5));
+  }
+  .light svg {
+    --c: #00a05c;
+    filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 9px rgba(0, 205, 120, 0.6)) drop-shadow(0 0 30px rgba(0, 205, 120, 0.4));
+  }
+  /* split: the light scene fills the right-hand side behind a slanted edge */
+  body.split .light { clip-path: polygon(56% 0, 100% 0, 100% 100%, 44% 100%); }
+</style>
+<div class="layer dark"><iframe></iframe><svg></svg></div>
+<div class="layer light"><iframe></iframe><svg></svg></div>
+<script src="../newtab/glyphs.js"></script>
+<script>
+  const G = window.InTimeGlyphs;
+  const NS = 'http://www.w3.org/2000/svg';
+  const GAP = 14; // between the digits of a pair
+  const SEP = 36; // width of a ':' column
+  const PAD = 30;
+  const groups = '13:08:29:58'.split(':');
+  const pairW = G.W * 2 + GAP;
+
+  function el(tag, attrs, parent) {
+    const node = document.createElementNS(NS, tag);
+    for (const [name, value] of Object.entries(attrs)) node.setAttribute(name, value);
+    parent.appendChild(node);
+    return node;
+  }
+
+  function drawDigits(svg) {
+    svg.setAttribute('viewBox', `0 0 ${PAD * 2 + pairW * groups.length + SEP * (groups.length - 1)} ${PAD * 2 + G.H}`);
+    groups.forEach((pair, g) => {
+      const x0 = PAD + g * (pairW + SEP);
+      [...pair].forEach((digit, i) => {
+        const cell = el('g', { transform: `translate(${x0 + i * (G.W + GAP)} ${PAD})` }, svg);
+        G.paths[digit].forEach((d) => el('path', { d }, cell));
+      });
+      if (g < groups.length - 1) {
+        for (const at of [0.32, 0.68]) el('rect', { x: x0 + pairW + SEP / 2 - 2.6, y: PAD + G.H * at - 2.6, width: 5.2, height: 5.2 }, svg);
+      }
+    });
+  }
+
+  const mode = new URLSearchParams(location.search).get('scheme') || 'dark';
+  document.body.classList.toggle('split', mode === 'split');
+  for (const scheme of ['dark', 'light']) {
+    const layer = document.querySelector(`.${scheme}`);
+    if (mode !== scheme && mode !== 'split') {
+      layer.remove();
+      continue;
+    }
+    drawDigits(layer.querySelector('svg'));
+    layer.querySelector('iframe').src = `../newtab/newtab.html?still=bg&nograin&scheme=${scheme}`;
+  }
+</script>

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>New Tab</title>
+  <link rel="stylesheet" href="newtab.css">
+  <script src="scheme.js"></script>
+</head>
+<body>
+  <div id="stage">
+    <div class="fog fog-a"></div>
+    <div class="fog fog-b"></div>
+    <canvas id="ring" aria-hidden="true"></canvas>
+    <svg id="city" aria-hidden="true" preserveAspectRatio="xMidYMax slice"></svg>
+    <div class="mist"></div>
+    <canvas id="fx" aria-hidden="true"></canvas>
+
+    <main id="hud">
+      <header class="eyebrow">
+        <b id="kicker">Time remaining</b>
+        <span id="subject">&nbsp;</span>
+      </header>
+
+      <div id="clock-wrap">
+        <svg id="clock" aria-hidden="true"></svg>
+      </div>
+      <p id="sr-time" class="sr-only" role="timer" aria-live="off"></p>
+
+      <footer class="meta" aria-hidden="true">
+        <div class="bank">
+          <div class="bank-head"><span id="bank-left">&nbsp;</span><span id="bank-right">&nbsp;</span></div>
+          <div class="bank-track" id="bank-track"><i></i></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><b id="stat-days">0</b><span>days</span></div>
+          <div class="stat"><b id="stat-hours">0</b><span>hours</span></div>
+          <div class="stat"><b id="stat-seconds">0</b><span>seconds</span></div>
+        </div>
+      </footer>
+    </main>
+
+    <div class="flash" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <button id="edit" type="button">Settings</button>
+
+    <div id="setup" hidden role="dialog" aria-modal="true" aria-labelledby="setup-title">
+      <form class="card" id="setup-form" novalidate>
+        <h1 id="setup-title">Activate your clock</h1>
+        <p>Your clock counts down to your next birthday, then is topped up with a fresh year. Your birth date stays in this browser and is never sent anywhere. <a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a></p>
+        <label class="field-label" for="dob">Date of birth</label>
+        <input id="dob" type="date" min="1900-01-01" required>
+        <p id="setup-error" class="error" role="alert"></p>
+        <div class="appearance" role="radiogroup" aria-labelledby="appearance-label">
+          <span class="field-label" id="appearance-label">Appearance</span>
+          <div class="segments">
+            <label><input type="radio" name="scheme" value="auto"><span>Auto</span></label>
+            <label><input type="radio" name="scheme" value="dark"><span>Dark</span></label>
+            <label><input type="radio" name="scheme" value="light"><span>Light</span></label>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" id="setup-cancel" class="ghost">Cancel</button>
+          <button type="submit" id="setup-submit">Start clock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="core.js"></script>
+  <script src="glyphs.js"></script>
+  <script src="fx.js"></script>
+  <script src="newtab.js"></script>
+</body>
+</html>

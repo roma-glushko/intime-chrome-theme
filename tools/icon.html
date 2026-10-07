@@ -1,0 +1,62 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>In Time — icon</title>
+<!--
+  The extension / theme icon: a chamfered "0" from the clock with a bite drained out of it, shedding grains.
+  Rendered at 16 / 32 / 48 / 128 px by tools/render-assets.sh. ?size=N picks a simpler, bolder variant when small;
+  &scheme=light draws it on a porcelain tile for the light theme.
+-->
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+  svg { display: block; width: 100vw; height: 100vh; }
+</style>
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="75%">
+      <stop offset="0" stop-color="#0e4a35"/>
+      <stop offset="1" stop-color="#020806"/>
+    </radialGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <rect id="rim" x="1.5" y="1.5" width="125" height="125" rx="27" fill="none" stroke="#39ff94" stroke-opacity="0.35" stroke-width="2"/>
+  <g transform="translate(41.6 25.6) scale(0.8)" id="zero" filter="url(#glow)">
+    <path pathLength="1" d="M10,0 H46 L56,10 V86 L46,96 H10 L0,86 V10 Z" fill="none" stroke="#39ff94"
+          stroke-width="9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0.6 0.14 0.26 2"/>
+  </g>
+  <!-- the stroke is missing from 60% to 74% of its length: a bite out of the bottom-left corner, with grains spilling out -->
+  <g id="grains" fill="#9dffcf">
+    <circle cx="49" cy="109" r="2.4"/>
+    <circle cx="43" cy="115" r="1.7"/>
+    <circle cx="55" cy="118" r="1.3"/>
+    <circle cx="38" cy="120" r="1.1"/>
+  </g>
+</svg>
+<script>
+  const query = new URLSearchParams(location.search);
+  const size = +query.get('size') || 128;
+  const zero = document.getElementById('zero');
+  const stroke = zero.querySelector('path');
+
+  if (query.get('scheme') === 'light') {
+    const [centre, edge] = document.querySelectorAll('#bg stop');
+    centre.setAttribute('stop-color', '#ffffff');
+    edge.setAttribute('stop-color', '#cde6da');
+    const rim = document.getElementById('rim');
+    rim.setAttribute('stroke', '#0a8f55');
+    stroke.setAttribute('stroke', '#00a05c');
+    document.getElementById('grains').setAttribute('fill', '#0a8f55');
+  }
+
+  // The Web Store wants its 128px icon as 96px of artwork with 16px of transparent padding all round.
+  if (size === 128) Object.assign(document.querySelector('svg').style, { width: '96px', height: '96px', margin: '16px' });
+
+  if (size <= 48) document.getElementById('grains').remove();
+  if (size <= 32) {
+    zero.removeAttribute('filter');
+    stroke.setAttribute('stroke-width', size <= 16 ? 15 : 12);
+  }
+</script>

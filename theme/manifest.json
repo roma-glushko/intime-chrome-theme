@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "In Time — Dark",
+  "version": "1.2.0",
+  "description": "Black-green night with neon clock light. Pairs with the In Time new-tab extension for the birthday countdown.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "theme": {
+    "images": {
+      "theme_frame": "images/theme_frame.png",
+      "theme_toolbar": "images/theme_toolbar.png",
+      "theme_tab_background": "images/theme_tab_background.png",
+      "theme_ntp_background": "images/theme_ntp_background.png"
+    },
+    "colors": {
+      "frame": [2, 9, 6],
+      "frame_inactive": [4, 14, 10],
+      "toolbar": [8, 27, 20],
+      "tab_text": [214, 255, 232],
+      "tab_background_text": [112, 176, 142],
+      "bookmark_text": [150, 230, 185],
+      "toolbar_button_icon": [140, 235, 180],
+      "omnibox_background": [4, 18, 13],
+      "omnibox_text": [214, 255, 232],
+      "ntp_background": [2, 7, 5],
+      "ntp_text": [190, 255, 218],
+      "ntp_link": [57, 255, 148],
+      "ntp_section": [8, 27, 20],
+      "ntp_section_text": [190, 255, 218],
+      "ntp_section_link": [57, 255, 148]
+    },
+    "tints": {
+      "buttons": [0.39, 0.5, 0.8]
+    },
+    "properties": {
+      "ntp_background_alignment": "bottom",
+      "ntp_background_repeat": "no-repeat",
+      "ntp_logo_alternate": 1
+    }
+  }
+}
