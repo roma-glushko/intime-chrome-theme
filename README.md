@@ -1,158 +1,93 @@
-# In Time — Chrome themes (dark + light) and an animated new tab
+# In Time
 
-Two Chrome themes — **dark** and **light** — and a new-tab page with a glowing **countdown to your next birthday** that
-drains one second at a time, inspired by the forearm clocks in the film *In Time*.
+Chrome themes (dark and light) and a new-tab page with a glowing **countdown to your next birthday**, drained one second
+at a time. Inspired by the forearm clocks in the film *In Time*.
 
-Chrome themes can only hold colours and static images (no JavaScript, no animation, no automatic light/dark switching),
-so this is three small packages:
+<p align="center">
+  <img src="store/extension/screenshot-1-dark.png" alt="The clock, dark" width="49%">
+  <img src="store/extension/screenshot-2-light.png" alt="The clock, light" width="49%">
+</p>
 
-| Folder | What it is | What it does |
-| --- | --- | --- |
-| `theme/` | The **dark** theme, "In Time — Dark" | Black-green night: frame, tabs, toolbar and omnibox, plus a skyline behind Chrome's own New Tab page. |
-| `theme-light/` | The **light** theme, "In Time — Light" | Sun-bleached porcelain and pale mint with jade accents. |
-| `newtab/` | An extension that replaces the New Tab page | The animated clock, in dark or light. Asks for your birthday once. |
+| Package | What it is |
+| --- | --- |
+| [`newtab/`](newtab) | Extension (Manifest V3, **no permissions**) that replaces the New Tab page with the clock. Asks for a birthday once. |
+| [`theme/`](theme) | Dark Chrome theme: frame, tabs, toolbar, omnibox, and a skyline behind Chrome's own New Tab page. |
+| [`theme-light/`](theme-light) | Light Chrome theme. |
 
-Chrome wears one theme at a time, so load **one** of `theme/` or `theme-light/`.
+A theme is only colours and images: it can't run code or follow the system's light/dark setting. That's why the animation
+lives in the extension, and why there are two themes (Chrome wears one at a time).
 
-## Install locally (about a minute)
+## Try it
 
-1. Open `chrome://extensions` and switch on **Developer mode** (top right).
-2. **Load unpacked** → pick `theme` (dark) **or** `theme-light` (light). The browser changes colour.
-3. **Load unpacked** again → pick `newtab`.
-4. Open a new tab and enter your date of birth.
+1. Open `chrome://extensions` and switch on **Developer mode**.
+2. **Load unpacked** → `theme` (or `theme-light`), then **Load unpacked** → `newtab`.
+3. Open a new tab and enter a date of birth.
 
-To switch themes later, load the other folder (it replaces the first; remove the unused one from `chrome://extensions`).
-*Settings → Appearance → Reset to default* removes whichever theme is active; removing the extension brings back Chrome's
-own New Tab page. If you update these files, press the reload arrow on the extension's card.
+To just look, open `newtab/newtab.html` in Chrome; no install. Add `?dob=1990-10-21&now=2026-10-20T23:59:57` to watch a birthday
+roll over (more [debug parameters](#debug-parameters) below). **Settings** (bottom right) changes the birthday and picks
+Auto / Dark / Light; Auto follows the system live. Checked against Chrome 154.
 
-The extension replaces Chrome's New Tab page, so the Google search box and shortcut tiles are gone from it. The address bar
-still does everything. If your Chrome is managed and blocks *Load unpacked*, `newtab/newtab.html` also works as a plain page
-from disk — set `file:///…/newtab/newtab.html` as your home page.
+## How it works
+
+- **Clock.** `YY:MM:DD:HH:MM:SS` to midnight at the start of the next birthday, so it never holds more than a year, like the one
+  the film hands you at 25. On the birthday it reads `01:00:00:00:00:00`.
+- **Animation.** Each digit is a single-stroke SVG path (`pathLength="1"`), so CSS `stroke-dashoffset` alone draws a digit on and
+  drains the old one away. Canvas ([`fx.js`](newtab/fx.js)) adds the falling grains and a ring that ticks each second.
+  `prefers-reduced-motion` turns the motion off.
+- **Maths.** [`core.js`](newtab/core.js) counts months *backwards* from the target. Counting forwards from now clamps at month
+  ends (Jan 31 + 1 month = Feb 28) and makes the clock jump up by a day. Feb 29 birthdays fall on Mar 1 in common years.
+  [`tools/test-core.js`](tools/test-core.js) sweeps the readout second by second across month ends, leap days, DST changes and
+  every rollover, and requires it to strictly decrease.
+- **Light and dark.** Colours are CSS custom properties, and [`scheme.js`](newtab/scheme.js) runs from `<head>`, so the first
+  paint is already in the right scheme. Dark adds light (additive blending); light paints the same shapes as ink.
+- **No New Tab image in the light theme.** With any background image Chrome draws its logo and labels in white, which a pale
+  image can't carry.
 
 ## Privacy
 
-The birth date you enter and your light/dark choice are stored in the extension's `localStorage` on your device. Nothing is
-sent anywhere: no network requests, no analytics, no permissions. The full policy is `newtab/privacy.html`; it ships inside the
-extension (**Settings → Privacy policy**), and `node tools/pack.mjs` copies it to `dist/privacy-policy.html` for hosting.
+No permissions, no network requests, no analytics, no remote code. The birth date and the light/dark choice live in the
+extension's `localStorage` and never leave the device. Policy: [`newtab/privacy.html`](newtab/privacy.html), also linked from
+Settings.
 
-## Publishing to the Chrome Web Store
+## Layout
 
-```sh
-node tools/pack.mjs        # checks the packages, then writes dist/in-time-*.zip and dist/privacy-policy.html
-tools/render-store.sh      # (re)generates the screenshots and promo tiles in store/
-```
+| Path | Role |
+| --- | --- |
+| `newtab/core.js` | Countdown maths: the only logic with real edge cases |
+| `newtab/newtab.{html,css,js}` | The page: skyline, clock, settings card, animation loop; light/dark tokens in the CSS |
+| `newtab/fx.js`, `glyphs.js`, `scheme.js` | Canvas ring and grains; the stroke digits; pre-paint scheme choice |
+| `theme/`, `theme-light/` | The two themes: `manifest.json`, `images/`, `icons/` |
+| `tools/` | `pack.mjs` (validate and build the ZIPs), `render.mjs` (page → PNG via headless Chrome, used for every image), `test-core.js` |
+| `store/` | Chrome Web Store listing copy and images |
 
-`pack.mjs` builds one ZIP per package, each with `manifest.json` at its root, which is what the store wants (not a `.crx`:
-Google signs the package itself). It refuses to build if a manifest breaks the store's limits (name ≤ 75 characters,
-description ≤ 132, icons that exist at their real pixel sizes, referenced files present, no inline scripts) or if the privacy page
-is missing, and it leaves out stray files such as Chrome's `Cached Theme.pak`. Each ZIP also carries the repository's `LICENSE` and
-`NOTICE`, which Apache-2.0 asks redistributors to pass on.
+## Development
 
-`store/listing.md` has the text for every dashboard field (including the privacy answers, reviewer instructions and how to host the
-policy), and `store/` holds the screenshots and 440×280 promo tiles. The two theme listings need screenshots of the real browser
-wearing the theme; `store/listing.md` shows how to take them.
+The extension has no build step and no dependencies. The tools need Node 22+, Google Chrome and, for `pack.mjs`, `zip` / `unzip`.
 
-**The name.** "In Time" is also a film title. The store forbids implying affiliation with someone else's brand and can reduce the
-visibility of items it thinks infringe, so the listings use no film art, characters, quotes or locations and end with a "not
-affiliated" line. If the store flags the name, change `name` in the three manifests and upload again.
+| Task | Command |
+| --- | --- |
+| Test the countdown maths in several time zones | `for tz in UTC America/New_York Europe/London Asia/Kolkata Asia/Kathmandu Pacific/Auckland Australia/Lord_Howe; do TZ=$tz node tools/test-core.js; done` |
+| Validate against the Web Store's limits and build the upload ZIPs into `dist/` | `node tools/pack.mjs` |
+| Regenerate theme textures, icons and the dark theme's New Tab image | `tools/render-assets.sh` |
+| Regenerate the store screenshots and promo tiles | `tools/render-store.sh` |
 
-To release an update: raise `version` in the package's `manifest.json`, run `node tools/pack.mjs`, and upload the new ZIP in the
-dashboard's Package tab.
+Publishing steps and the dashboard copy are in [`store/listing.md`](store/listing.md).
 
-## Light, dark, or automatic
+### Debug parameters
 
-The new-tab page has its own **Appearance** setting (*Settings*, bottom right): **Auto** follows your system's light/dark
-setting live, **Dark** and **Light** force one. A theme can't follow the system, so to keep the two matching either pick
-the same on both, or leave the page on Auto and load the theme that suits how you usually run your system.
-
-Light isn't an inverted dark. Dark adds light: grains and ring are drawn with additive blending and the digits glow. A pale
-sky can't be brightened, so light paints the same shapes as deep-green ink with ordinary blending, the glow becomes a tinted
-bloom, new digits arrive as dark wet ink and dry to jade (dark: white-hot, cooling to green), and the skyline turns to sage
-and white glints.
-
-The light theme has **no New Tab image on purpose**. When a theme has one, Chrome draws its logo and shortcut labels in
-white — perfect over the dark skyline, unreadable over a pale one. Without an image, Chrome keeps its colour logo and uses
-the theme's dark text.
-
-## The clock
-
-- `YY : MM : DD : HH : MM : SS` until **midnight at the start of your next birthday**, in your local time. It never holds
-  more than a year, like the one year the film hands you at 25.
-- On your birthday it reads `01:00:00:00:00:00` and says **Time granted**; grains of time rise into the clock instead of
-  falling out of it. If the tab is open at midnight you watch the year land.
-- Every second the old digit un-draws along its stroke and sheds grains that fall; the new digit draws on and settles. Bigger
-  units shed more, so a new minute, hour or day is felt. The ring behind the clock steps a tick per second with a fading
-  beam, and every so often the readout slips in a short signal tear.
-- Feb 29 birthdays are celebrated on Mar 1 in common years.
-- Your birth date is kept in this extension's `localStorage` and never leaves your machine. *Settings* edits it.
-- `prefers-reduced-motion` turns off the grains, glitch and easing.
-
-## Files
-
-```
-theme/                  dark theme:  manifest.json + images/ (frame, toolbar, tab and New Tab skyline) + icons/
-theme-light/            light theme: manifest.json + images/ (frame, toolbar, tab) + icons/
-newtab/
-  manifest.json         overrides the new tab page, asks for no permissions
-  newtab.html/.css/.js  the page: skyline, clock, settings card, animation loop
-  privacy.html          the privacy policy (self-contained; linked from Settings, and hosted from dist/)
-  scheme.js             picks light or dark before first paint, so there is no flash of the wrong palette
-  core.js               countdown maths (pure, unit-tested)
-  glyphs.js             the chamfered single-stroke digits
-  fx.js                 canvas layers: the ring, and the falling / rising grains (one palette per scheme)
-tools/
-  pack.mjs              validates the packages and builds the Web Store ZIPs into dist/
-  render.mjs            dependency-free page -> PNG with headless Chrome (DevTools protocol)
-  render-assets.sh      regenerates every PNG in theme/, theme-light/ and newtab/icons/
-  render-store.sh       regenerates the store screenshots and promo tiles in store/
-  theme-assets.html     the frame / toolbar / tab textures      icon.html   the icon      store-tile.html   the promo tiles
-  test-core.js          date-maths checks
-store/                  listing.md (dashboard copy) and the listing images
-dist/                   the ZIPs to upload and the privacy page to host (generated by tools/pack.mjs)
-LICENSE, NOTICE         Apache-2.0 and the copyright notice (tools/pack.mjs bundles both into every ZIP)
-```
-
-Chrome writes a `Cached Theme.pak` next to a theme's manifest when it applies it. It's a regenerable cache and safe to delete;
-the packer never includes it.
-
-## Debugging the page
-
-Open `newtab/newtab.html` directly and add query parameters:
+Add to `newtab/newtab.html`:
 
 | Parameter | Effect |
 | --- | --- |
 | `?dob=1990-10-21` | Use this birthday without saving it |
-| `?now=2026-10-20T23:59:57` | Pretend it is this local time (the clock keeps running from there) |
+| `?now=2026-10-20T23:59:57` | Pretend it is this local time; the clock keeps running from there |
 | `?scheme=light` or `dark` | Force a colour scheme without saving it |
 | `?calm` | Behave as if `prefers-reduced-motion` were on |
-| `?still=bg` | Backdrop only, frozen — the dark theme's New Tab image and the store tiles come from this |
-| `?nograin` | With `?still=bg`, leave out the film grain |
-| `?debug` | Exposes `window.__intime` (`glitch()`, `grant()`, `fx`) |
-
-## Regenerating the images
-
-```sh
-tools/render-assets.sh      # theme textures, New Tab image, icons   (needs Node 22+ and Google Chrome)
-tools/render-store.sh       # store screenshots and promo tiles
-```
-
-## Tests
-
-The countdown is calendar maths in local time, so run the checks under a few zones (DST, half-hour DST, odd offsets):
-
-```sh
-for tz in UTC America/New_York Europe/London Asia/Kolkata Asia/Kathmandu Pacific/Auckland Australia/Lord_Howe; do
-  TZ=$tz node tools/test-core.js
-done
-```
-
-They sweep the readout second by second across month ends, leap days, year end, DST changes and every birthday rollover,
-and require it to strictly decrease. Counting months forwards from now fails this at month ends (Jan 31 + 1 month = Feb 28
-makes the clock jump *up* by a day), so `core.js` counts backwards from the target instead.
+| `?debug` | Expose `window.__intime` (`glitch()`, `grant()`, `fx`) |
+| `?still=bg` (and `&nograin`) | Backdrop only, frozen: how the images are rendered |
 
 ## License
 
-Copyright 2026 Roman Hlushko. Licensed under the [Apache License, Version 2.0](LICENSE); the copyright notice is in
-[`NOTICE`](NOTICE). The license covers this project's code and artwork. It grants no rights in the film *In Time* or its title.
-
-Commits are signed off under the [Developer Certificate of Origin](https://developercertificate.org/) (`git commit -s`).
+[Apache-2.0](LICENSE), with the copyright notice in [`NOTICE`](NOTICE). Commits are signed off under the
+[DCO](https://developercertificate.org/) (`git commit -s`). Inspired by the film *In Time*; not affiliated with or endorsed by its
+makers.
