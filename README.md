@@ -46,8 +46,8 @@ Auto / Dark / Light; Auto follows the system live. Checked against Chrome 154.
 ## Privacy
 
 No permissions, no network requests, no analytics, no remote code. The birth date and the light/dark choice live in the
-extension's `localStorage` and never leave the device. Policy: [`newtab/privacy.html`](newtab/privacy.html), also linked from
-Settings.
+extension's `localStorage` and never leave the device. Policy: [`privacy.md`](privacy.md). The extension ships an identical copy
+(`newtab/privacy.html`, linked from Settings), and `tools/pack.mjs` fails if the two differ.
 
 ## Layout
 
@@ -58,6 +58,7 @@ Settings.
 | `newtab/fx.js`, `glyphs.js`, `scheme.js` | Canvas ring and grains; the stroke digits; pre-paint scheme choice |
 | `theme/`, `theme-light/` | The two themes: `manifest.json`, `images/`, `icons/` |
 | `tools/` | `pack.mjs` (validate and build the ZIPs), `render.mjs` (page → PNG via headless Chrome, used for every image), `test-core.js` |
+| `privacy.md`, `newtab/privacy.html` | The privacy policy: the hosted page, and the identical copy shipped in the extension |
 | `store/` | Chrome Web Store listing copy and images |
 
 ## Development
@@ -67,7 +68,7 @@ The extension has no build step and no dependencies. The tools need Node 22+, Go
 | Task | Command |
 | --- | --- |
 | Test the countdown maths in several time zones | `for tz in UTC America/New_York Europe/London Asia/Kolkata Asia/Kathmandu Pacific/Auckland Australia/Lord_Howe; do TZ=$tz node tools/test-core.js; done` |
-| Validate against the Web Store's limits and build the upload ZIPs into `dist/` | `node tools/pack.mjs` |
+| Validate against the Web Store's limits (and that the two privacy-policy copies match), then build the upload ZIPs into `dist/` | `node tools/pack.mjs` |
 | Regenerate theme textures, icons and the dark theme's New Tab image | `tools/render-assets.sh` |
 | Regenerate the store screenshots and promo tiles | `tools/render-store.sh` |
 

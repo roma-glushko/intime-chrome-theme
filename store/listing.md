@@ -31,7 +31,7 @@ ZIP: `dist/in-time-newtab-<version>.zip`
 | Screenshots | `store/extension/screenshot-1-dark.png`, `-2-light.png`, `-3-birthday.png`, `-4-settings.png` (1280×800) |
 | Small promo tile | `store/extension/small-tile.png` (440×280) |
 | Store icon | comes from the package (`icons/icon128.png`, 96 px of art with 16 px padding) |
-| Support URL | fill this in: the privacy policy sends people to the listing's Support link |
+| Support URL | fill this in: the privacy policy sends people to the listing's Support link. The repository's Issues page works: `https://github.com/roma-glushko/intime-chrome-theme/issues` |
 | Promo video | optional; leave blank |
 
 Detailed description:
@@ -61,7 +61,7 @@ Inspired by the film In Time. Not affiliated with, or endorsed by, its makers.
 | Permission justification | None needed: the extension requests no permissions. |
 | Remote code | No, I am not using remote code. |
 | Data usage | Tick **Personally identifiable information**: the date of birth the user types in. It is stored only in the browser's local storage and never transmitted. Then certify the three Limited Use statements (no selling or transferring, nothing unrelated to the single purpose, nothing for creditworthiness). |
-| Privacy policy URL | The URL where you host `dist/privacy-policy.html` (see below). |
+| Privacy policy URL | `https://github.com/roma-glushko/intime-chrome-theme/blob/main/privacy.md` (see below) |
 
 **Distribution**: free; all regions. Start with **Unlisted** if you want to share a link and check the listing page first, then
 switch to **Public**.
@@ -69,20 +69,24 @@ switch to **Public**.
 **Test instructions** (for the reviewer): *No account or setup needed. Open a new tab, enter any date of birth and press Start
 clock. "Settings" at the bottom right changes the date, switches between Light and Dark, and links to the privacy policy.*
 
-### Hosting the privacy policy
+### The privacy policy URL
 
-The policy is one self-contained page, `newtab/privacy.html`. It ships inside the extension (Settings → *Privacy policy*), and
-`node tools/pack.mjs` copies it to `dist/privacy-policy.html`: that copy is the file to put at a public URL, because the dashboard
-needs a link anyone can open. Any static host works:
+The policy exists as two identical copies: `privacy.md` at the repository root (the hosted page) and `newtab/privacy.html` (shipped
+inside the extension and linked from Settings → *Privacy policy*). `node tools/pack.mjs` fails if they ever differ.
 
-- **GitHub Pages, from this repository** (the simplest): once it is pushed and public, enable *Settings → Pages → Deploy from a
-  branch → `main`, `/ (root)`*. The repository tracks `newtab/privacy.html` (`dist/` is git-ignored), so the policy is then served at
-  `https://roma-glushko.github.io/intime-chrome-theme/newtab/privacy.html`. Free Pages needs a public repository.
-- **Netlify Drop** or **Cloudflare Pages**: drag `dist/privacy-policy.html` in and use the URL you get.
+The dashboard needs a link anyone can open. The repository is public and GitHub renders Markdown, so once `privacy.md` is pushed
+the URL is simply:
 
-Paste that URL into the Privacy practices tab. The page names no person and no email address; its Contact line points to the
-listing's Support link, so set the Support URL (or change that line to an address you're happy to publish). If you edit
-`newtab/privacy.html`, run `node tools/pack.mjs` again so the shipped and hosted copies match.
+```text
+https://github.com/roma-glushko/intime-chrome-theme/blob/main/privacy.md
+```
+
+Paste it into the Privacy practices tab. The policy names no person and no email address: its Contact line points to the listing's
+Support link, so set the Support URL (for example the repository's Issues page).
+
+If you would rather have a styled standalone page: GitHub Pages (*Settings → Pages → Deploy from a branch → `main`, `/ (root)`*)
+serves the HTML copy at `https://roma-glushko.github.io/intime-chrome-theme/newtab/privacy.html`, and `dist/privacy-policy.html`
+can go on any static host (Netlify Drop, Cloudflare Pages). Edit both copies together, then run `node tools/pack.mjs`.
 
 ---
 

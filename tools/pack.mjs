@@ -6,7 +6,8 @@
  * every package is checked against the store's hard limits, so a bad manifest fails here rather than in review:
  *   name <= 75 characters, description <= 132, a valid version, icons that exist at their real pixel sizes (including
  *   the 128 px store icon), every referenced file present, theme images are PNG, no inline scripts, no remote code.
- * The new-tab package must also contain privacy.html; a copy is written to dist/privacy-policy.html, the file to host.
+ * The new-tab package must also contain privacy.html (a copy goes to dist/privacy-policy.html for static hosting), and the
+ * hosted privacy.md at the repository root must say exactly the same thing, so the two can never drift apart.
  * Every zip also carries the repository's LICENSE and NOTICE (Apache-2.0 asks redistributors to pass them on).
  *
  *   node tools/pack.mjs              build all three
@@ -112,6 +113,37 @@ function check(dir, files) {
   return { errors, warnings, manifest };
 }
 
+/** The policy's words with markup stripped, so the Markdown copy and the HTML copy can be compared. */
+function policyWords(file) {
+  let text = readFileSync(join(root, file), 'utf8');
+  if (file.endsWith('.html')) {
+    text = text
+      .replace(/^[\s\S]*<main>/, '')
+      .replace(/<\/main>[\s\S]*$/, '')
+      .replace(/<\/?(?:strong|em|b|i|a|code|span)\b[^>]*>/g, '') // inline tags vanish
+      .replace(/<[^>]+>/g, ' '); // block tags separate words
+  } else {
+    text = text
+      .replace(/^#+\s+/gm, '')
+      .replace(/^\s*[-*]\s+/gm, '')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/[*_`]/g, '');
+  }
+  return text.split(/\s+/).filter(Boolean);
+}
+
+/** The hosted privacy.md and the copy that ships in the extension must say exactly the same thing. */
+function policyDrift() {
+  if (!existsSync(join(root, 'privacy.md'))) return null; // the hosted copy is optional
+  const md = policyWords('privacy.md');
+  const html = policyWords('newtab/privacy.html');
+  const at = md.findIndex((word, i) => word !== html[i]);
+  if (at === -1 && md.length === html.length) return null;
+  const i = at === -1 ? Math.min(md.length, html.length) : at;
+  const around = (words) => `"${words.slice(Math.max(0, i - 4), i + 5).join(' ')}"`;
+  return `privacy.md and newtab/privacy.html differ near word ${i + 1}: ${around(md)} vs ${around(html)}`;
+}
+
 function build(key) {
   const dir = join(root, key);
   const all = walk(dir).sort();
@@ -123,6 +155,10 @@ function build(key) {
   }
   for (const file of LEGAL_FILES) {
     if (!existsSync(join(root, file))) errors.push(`${file} is missing from the repository root (it is bundled into every package)`);
+  }
+  if (key === 'newtab') {
+    const drift = policyDrift();
+    if (drift) errors.push(drift);
   }
 
   console.log(`\n${key}${manifest ? `  —  ${manifest.name}  v${manifest.version}` : ''}`);
@@ -153,7 +189,8 @@ function build(key) {
   // The Web Store wants the policy at a public URL: this copy of the page inside the extension is the file to host.
   if (key === 'newtab') {
     copyFileSync(join(dir, 'privacy.html'), join(dist, 'privacy-policy.html'));
-    console.log('  ok       copy to host publicly  ->  dist/privacy-policy.html');
+    console.log('  ok       copy for static hosting  ->  dist/privacy-policy.html');
+    if (existsSync(join(root, 'privacy.md'))) console.log('  ok       privacy.md and newtab/privacy.html say the same thing');
   }
   return true;
 }
