@@ -7,6 +7,7 @@
  *   name <= 75 characters, description <= 132, a valid version, icons that exist at their real pixel sizes (including
  *   the 128 px store icon), every referenced file present, theme images are PNG, no inline scripts, no remote code.
  * The new-tab package must also contain privacy.html; a copy is written to dist/privacy-policy.html, the file to host.
+ * Every zip also carries the repository's LICENSE and NOTICE (Apache-2.0 asks redistributors to pass them on).
  *
  *   node tools/pack.mjs              build all three
  *   node tools/pack.mjs theme        build one of: newtab | theme | theme-light
@@ -28,6 +29,8 @@ const PACKAGES = {
 };
 // Files a package must contain. The privacy policy ships inside the extension (Settings links to it).
 const REQUIRED_FILES = { newtab: ['privacy.html'] };
+// Apache-2.0 asks anyone who redistributes the work to pass the licence (and the NOTICE) on, so every zip carries both.
+const LEGAL_FILES = ['LICENSE', 'NOTICE'];
 
 // What Chrome, macOS and editors leave behind (hidden files, Chrome's compiled theme cache...). Never zipped.
 const JUNK = /(^|\/)(\.[^/]+|Cached Theme\.pak|Thumbs\.db|__MACOSX)(\/|$)/;
@@ -118,6 +121,9 @@ function build(key) {
   for (const file of REQUIRED_FILES[key] ?? []) {
     if (!files.includes(file)) errors.push(`${file} is required but missing`);
   }
+  for (const file of LEGAL_FILES) {
+    if (!existsSync(join(root, file))) errors.push(`${file} is missing from the repository root (it is bundled into every package)`);
+  }
 
   console.log(`\n${key}${manifest ? `  —  ${manifest.name}  v${manifest.version}` : ''}`);
   for (const file of skipped) console.log(`  skipped  ${file}`);
@@ -133,12 +139,14 @@ function build(key) {
   rmSync(scratch, { force: true });
   const ordered = ['manifest.json', ...files.filter((file) => file !== 'manifest.json')];
   execFileSync('zip', ['-X', '-q', '-9', scratch, '-@'], { cwd: dir, input: `${ordered.join('\n')}\n` });
+  execFileSync('zip', ['-X', '-q', '-9', '-j', scratch, ...LEGAL_FILES.map((file) => join(root, file))]); // -j: they land at the zip root
   renameSync(scratch, out);
 
   // Read the archive back: manifest.json must sit at its root and the contents must be exactly the files we meant.
   const entries = execFileSync('unzip', ['-Z1', out], { encoding: 'utf8' }).split('\n').filter(Boolean).sort();
   if (!entries.includes('manifest.json')) throw new Error(`${out} has no manifest.json at its root`);
-  if (entries.join('\n') !== [...files].sort().join('\n')) throw new Error(`${out} does not contain exactly the expected files`);
+  const expected = [...new Set([...files, ...LEGAL_FILES])].sort();
+  if (entries.join('\n') !== expected.join('\n')) throw new Error(`${out} does not contain exactly the expected files`);
 
   console.log(`  ok       ${entries.length} files, ${(statSync(out).size / 1024).toFixed(0)} KB  ->  ${relative(root, out)}`);
 
